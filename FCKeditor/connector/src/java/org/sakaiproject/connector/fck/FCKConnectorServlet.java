@@ -43,6 +43,7 @@ import javax.xml.transform.stream.StreamResult;
 import org.apache.commons.fileupload.DiskFileUpload;
 import org.apache.commons.fileupload.FileItem;
 import org.sakaiproject.content.api.ContentCollection;
+import org.sakaiproject.content.api.ContentResource;
 import org.sakaiproject.content.cover.ContentHostingService;
 import org.sakaiproject.entity.api.Entity;
 import org.sakaiproject.entity.api.ResourceProperties;
@@ -219,7 +220,6 @@ public class FCKConnectorServlet extends HttpServlet
                     while (iter.hasNext()) 
                     {
                         FileItem item = (FileItem) iter.next();
-                        // System.out.println(item.getFieldName() + " === " + item);
                         if (item.isFormField()) 
                              fields.put(item.getFieldName(), item.getString());
                         else
@@ -232,8 +232,14 @@ public class FCKConnectorServlet extends HttpServlet
                     String[] pathParts = filePath.split("/");
                     fileName = pathParts[pathParts.length-1];
                     
-                    String nameWithoutExt = fileName.substring(0, fileName.lastIndexOf(".")); 
-                    String ext = fileName.substring(fileName.lastIndexOf(".") + 1); 
+                    String nameWithoutExt = fileName; 
+                    String ext = ""; 
+
+                    if (fileName.lastIndexOf(".") > 0) 
+                    {
+                         nameWithoutExt = fileName.substring(0, fileName.lastIndexOf(".")); 
+                         ext = fileName.substring(fileName.lastIndexOf(".")); 
+                    }
 
                     String mime = uplFile.getContentType();
 
@@ -256,7 +262,7 @@ public class FCKConnectorServlet extends HttpServlet
                          catch (IdUsedException iue) 
                          {
                               //the name is already used, so we do a slight rename to prevent the colision
-                              fileName = nameWithoutExt + "(" + counter + ")" + "." + ext;
+                              fileName = nameWithoutExt + "(" + counter + ")" + ext;
                               status = "201";
                               counter++;
                          }
@@ -363,14 +369,13 @@ public class FCKConnectorServlet extends HttpServlet
           }     
           if (collection != null) 
           {
-               Entity current = null;
-               Iterator iterator = collection.getMemberResources().iterator();
+        	   Iterator iterator = collection.getMemberResources().iterator();
           
                while (iterator.hasNext ()) 
                {
                     try 
                     {
-                         current = (Entity)iterator.next();
+                    	ContentResource current = (ContentResource)iterator.next();
 
                          String ext = current.getProperties().getProperty(
                                    current.getProperties().getNamePropContentType());
@@ -378,21 +383,34 @@ public class FCKConnectorServlet extends HttpServlet
                          if ( (type.equals("File") && (ext != null) ) || 
                               (type.equals("Flash") && ext.equalsIgnoreCase("application/x-shockwave-flash") ) ||
                               (type.equals("Image") && ext.startsWith("image") ) ||
-                              type.equals("Link") && ext.equalsIgnoreCase("text/url") ) 
+                              type.equals("Link")) 
                          {
                          
                               Element element=doc.createElement("File");
                               element.setAttribute("name", current.getProperties().getProperty(
-                                            current.getProperties().getNamePropDisplayName()));
-                              element.setAttribute("size", "" + current.getProperties().getProperty(
+                                      current.getProperties().getNamePropDisplayName()));
+                              
+                              if (current.getProperties().getProperty(
+                                            current.getProperties().getNamePropContentLength()) != null)
+                              {
+                                   element.setAttribute("size", "" + current.getProperties().getProperty(
                                             current.getProperties().getNamePropContentLength()));
-
+                              }
+                              else 
+                              {
+                                   element.setAttribute("size", "0");
+                                   
+                              }
                               files.appendChild(element);
                          }
                     }
+                    catch (ClassCastException e) 
+                    {
+                    	//it's a colleciton not an item
+                    }
                     catch (Exception e) 
                     {
-                         //do nothing, we either don't have access to the item or it's a colleciton
+                    	//do nothing, we don't have access to the item
                     }
                }     
           }
