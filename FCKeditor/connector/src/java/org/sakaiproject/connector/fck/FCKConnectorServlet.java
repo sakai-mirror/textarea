@@ -110,11 +110,12 @@ public class FCKConnectorServlet extends HttpServlet {
           String commandStr = request.getParameter("Command");
           String type = request.getParameter("Type");
           String currentFolder = request.getParameter("CurrentFolder");
+          String editorId = request.getParameter("editorId");
 
           String collectionBase = request.getPathInfo();
 
           SecurityAdvisor advisor = (SecurityAdvisor) SessionManager.getCurrentSession()
-               .getAttribute(FCK_ADVISOR_BASE + collectionBase);
+               .getAttribute(FCK_ADVISOR_BASE + editorId);
           if (advisor != null) {
                SecurityService.pushAdvisor(advisor);
           }
@@ -133,10 +134,10 @@ public class FCKConnectorServlet extends HttpServlet {
         	   ContentHostingService.getUrl(currentFolder));
           
           if ("GetFolders".equals(commandStr)) {
-               getFolders(currentFolder, root, document, collectionBase);
+               getFolders(currentFolder, root, document, collectionBase, editorId);
           }
           else if ("GetFoldersAndFiles".equals(commandStr)) {
-               getFolders(currentFolder, root, document, collectionBase);
+               getFolders(currentFolder, root, document, collectionBase, editorId);
                getFiles(currentFolder, root, document, type);
           }
           else if ("CreateFolder".equals(commandStr)) {
@@ -339,7 +340,7 @@ public class FCKConnectorServlet extends HttpServlet {
      }
      
 
-     private void getFolders(String dir, Node root, Document doc, String collectionBase) {
+     private void getFolders(String dir, Node root, Document doc, String collectionBase, String editorId) {
           Element folders = doc.createElement("Folders");
           root.appendChild(folders);
                     
@@ -358,7 +359,7 @@ public class FCKConnectorServlet extends HttpServlet {
                          collections.addAll(map.keySet());
                     }
                     List extras = (List) SessionManager.getCurrentSession()
-                         .getAttribute(FCK_EXTRA_COLLECTIONS_BASE + collectionBase);
+                         .getAttribute(FCK_EXTRA_COLLECTIONS_BASE + editorId);
                     if (extras != null) {
                          collections.addAll(extras);
                     }
