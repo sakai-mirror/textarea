@@ -48,8 +48,8 @@ import org.sakaiproject.authz.api.SecurityService;
 import org.sakaiproject.component.cover.ComponentManager;
 import org.sakaiproject.content.api.ContentCollection;
 import org.sakaiproject.content.api.ContentCollectionEdit;
-import org.sakaiproject.content.api.ContentResource;
 import org.sakaiproject.content.api.ContentHostingService;
+import org.sakaiproject.content.api.ContentResource;
 import org.sakaiproject.entity.api.Entity;
 import org.sakaiproject.entity.api.ResourceProperties;
 import org.sakaiproject.entity.api.ResourcePropertiesEdit;
@@ -388,14 +388,14 @@ public class FCKConnectorServlet extends HttpServlet {
                     
           ContentCollection collection = null;
          
-          Map map = null; 
+          Map<String, String> map = null; 
           Iterator foldersIterator = null;
    
           try {
                //hides the real root level stuff and just shows the users the
                //the root folders of all the top collections they actually have access to.
                if (dir.split("/").length == 2) {
-                    List collections = new ArrayList();
+                    List<String> collections = new ArrayList<String>();
                     map = contentHostingService.getCollectionMap();
                     if (map != null && map.keySet() != null) {
                          collections.addAll(map.keySet());
